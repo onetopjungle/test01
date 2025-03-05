@@ -1,0 +1,28 @@
+{
+  "name": "Bot_ACheckin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start:dev": "nodemon --exec ts-node src/bot.ts"
+  },
+  "dependencies": {
+    "axios": "^1.8.1",
+    "better-sqlite3": "^11.8.1",
+    "ioredis": "^5.5.0",
+    "kysely": "^0.27.6",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@telegraf/session": "^2.0.0-beta.7",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.9",
+    "dotenv": "^16.4.7",
+    "nodemon": "^3.1.9",
+    "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "private": true
+}
