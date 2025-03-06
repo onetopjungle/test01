@@ -11,7 +11,7 @@ const scheduleRandomCheckin = () => {
   console.log(
     `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
   );
-  cron.schedule(`${randomMorningMinute} 8 * * 1-5`, async () => {
+  cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
     console.log("Đang check-in buổi sáng...");
     await autoCheckin();
     console.log("✅ Check-in buổi sáng xong.");
@@ -22,24 +22,20 @@ const scheduleRandomCheckin = () => {
   console.log(
     `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
   );
-  cron.schedule(`${randomEveningMinute} 18 * * 1-5`, async () => {
+  cron.schedule(`${randomEveningMinute} 11 * * 1-5`, async () => {
     console.log("Đang check-in buổi tối...");
     await autoCheckin();
     console.log("✅ Check-in buổi tối xong.");
   });
 
-  // logs cron job chạy ngẫu nhiên vào mỗi ngày từ thứ 2 đến thứ 6
-  cron.schedule("0 0 * * 1-5", async () => {
+  // logs cron job chạy ngẫu nhiên vào mỗi 00:00 từ thứ 2 đến thứ 6
+  cron.schedule("0 17 * * 1-5", async () => {
     console.log(
       `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
     );
     console.log(
       `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
     );
-  });
-
-  cron.schedule("*/30 * * * * *", () => {
-    console.log("✅ Cron job đang chạy... Kiểm tra thành công!");
   });
 };
 
