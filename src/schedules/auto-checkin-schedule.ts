@@ -18,8 +18,7 @@ const scheduleRandomCheckin = () => {
   });
 
   // Tạo thời gian ngẫu nhiên vào buổi tối (18:00 - 19:00)
-  const randomEveningMinute = 55;
-  // const randomEveningMinute = getRandomMinute();
+  const randomEveningMinute = getRandomMinute();
   console.log(
     `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
   );
