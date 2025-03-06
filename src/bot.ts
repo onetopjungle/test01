@@ -5,7 +5,9 @@ import { helpCommand } from "./commands/help";
 import { deleteSession, getSession } from "./stores/session";
 import { addUser, addUserCommand } from "./commands/adduser";
 import { checkin, checkinCommand } from "./commands/checkin";
-import { userMiddleware } from "./middlewares/user";
+import { userMiddleware } from "./middlewares/user-middleware";
+import { listCommand } from "./constant";
+import "../src/schedules/auto-checkin-schedule";
 
 dotenv.config();
 
@@ -15,49 +17,42 @@ const bot = new Telegraf(process.env.BOT_TOKEN || "");
 bot.use(userMiddleware);
 
 // Thiết lập các lệnh cho bot
-bot.telegram.setMyCommands([
-  { command: "start", description: "Bắt đầu bot" },
-  { command: "help", description: "Hiển thị hướng dẫn" },
-  { command: "adduser", description: "Thêm người dùng mới vào database" },
-  { command: "checkin", description: "Checkin" },
-]);
+bot.telegram.setMyCommands(listCommand);
 
-// Lệnh /start
-bot.start(startCommand);
+// Định nghĩa danh sách lệnh và handler tương ứng
+const commands = {
+  start: startCommand,
+  help: helpCommand,
+  adduser: addUserCommand,
+  checkin: checkinCommand,
+};
 
-// Lệnh /help
-bot.help(helpCommand);
-
-// Lệnh /adduser
-bot.command("adduser", addUserCommand);
-
-// Lệnh /checkin
-bot.command("checkin", checkinCommand);
+// Tự động đăng ký lệnh
+Object.entries(commands).forEach(([cmd, handler]) => bot.command(cmd, handler));
 
 // Lắng nghe tin nhắn văn bản
 bot.on("text", async (ctx) => {
   const userId = ctx.from?.id;
-  const messageText = ctx.message.text;
+  if (!userId) return;
 
-  // Lấy session người dùng từ Redis
+  // Lấy session của user từ Redis
   const session = await getSession(userId);
 
   switch (session?.action) {
     case "adduser":
-      await addUser(ctx, userId, messageText);
+      await addUser(ctx);
+      await deleteSession(userId);
       break;
 
     case "checkin":
       await checkin(ctx);
+      await deleteSession(userId);
       break;
 
     default:
-      // Trường hợp không nằm trong session nào
-      ctx.reply("Tôi có thể giúp gì cho bạn?");
+      await ctx.reply("Tôi có thể giúp gì cho bạn?");
       break;
   }
-
-  await deleteSession(userId);
 });
 
 // Bắt đầu bot

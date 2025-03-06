@@ -28,3 +28,10 @@ export const listAddress = [
     longitude: 105.800871,
   },
 ];
+
+export const listCommand = [
+  { command: "start", description: "Bắt đầu bot" },
+  { command: "help", description: "Hiển thị hướng dẫn" },
+  { command: "adduser", description: "Thêm người dùng mới vào database" },
+  { command: "checkin", description: "Checkin" },
+];
