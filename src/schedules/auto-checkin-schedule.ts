@@ -37,6 +37,10 @@ const scheduleRandomCheckin = () => {
       `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
     );
   });
+
+  cron.schedule("*/30 * * * * *", () => {
+    console.log("✅ Cron job đang chạy... Kiểm tra thành công!");
+  });
 };
 
 const autoCheckin = async () => {
