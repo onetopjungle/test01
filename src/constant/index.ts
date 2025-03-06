@@ -32,6 +32,6 @@ export const listAddress = [
 export const listCommand = [
   { command: "start", description: "Bắt đầu bot" },
   { command: "help", description: "Hiển thị hướng dẫn" },
-  { command: "adduser", description: "Thêm người dùng mới vào database" },
+  { command: "adduser", description: "Thêm người dùng" },
   { command: "checkin", description: "Checkin" },
 ];
