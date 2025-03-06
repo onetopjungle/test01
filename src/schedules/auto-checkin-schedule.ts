@@ -18,7 +18,8 @@ const scheduleRandomCheckin = () => {
   });
 
   // Tạo thời gian ngẫu nhiên vào buổi tối (18:00 - 19:00)
-  const randomEveningMinute = getRandomMinute();
+  const randomEveningMinute = 55;
+  // const randomEveningMinute = getRandomMinute();
   console.log(
     `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
   );
@@ -26,6 +27,16 @@ const scheduleRandomCheckin = () => {
     console.log("Đang check-in buổi tối...");
     await autoCheckin();
     console.log("✅ Check-in buổi tối xong.");
+  });
+
+  // logs cron job chạy ngẫu nhiên vào mỗi ngày từ thứ 2 đến thứ 6
+  cron.schedule("0 0 * * 1-5", async () => {
+    console.log(
+      `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
+    );
+    console.log(
+      `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
+    );
   });
 };
 
