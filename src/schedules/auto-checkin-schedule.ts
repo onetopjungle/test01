@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { queryAllDb } from "../stores/database";
 import { requestCheckin } from "../commands/checkin";
-import { setSession } from "../stores/session";
+import { deleteSession, setSession } from "../stores/session";
 import { sendMessage } from "../services/bot-service";
 
 // Hàm để tạo cron job chạy ngẫu nhiên vào mỗi ngày từ thứ 2 đến thứ 6
@@ -40,16 +40,29 @@ const autoCheckin = async () => {
 
     // Dùng Promise.all để chạy các yêu cầu song song
     const checkinPromises = users.map(async (user: any) => {
+      await setSession(user.user_id, { action: "checkin" });
+
       if (!user.access_token) {
-        await setSession(user.user_id, { action: "checkin" });
         return sendMessage(
           user.user_id,
           "👀 Bạn chưa có access token. Vui lòng nhập access token",
         );
       }
 
+      // Kiểm tra token hết hạn
+      const payload = JSON.parse(
+        Buffer.from(user.access_token.split(".")[1], "base64").toString(),
+      );
+      if (payload.exp < Date.now() / 1000) {
+        return sendMessage(
+          user.user_id,
+          "👀 Access token hết hạn. Vui lòng nhập access token mới.",
+        );
+      }
+
       try {
         const response = await requestCheckin(user.access_token);
+        await deleteSession(user.user_id);
         return sendMessage(
           user.user_id,
           `✅ Check-in cho user ${user.user_id}:\nKết quả: ${response?.data?.message || "Thành công!"}`,

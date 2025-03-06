@@ -26,7 +26,6 @@ export const checkinCommand = async (ctx: Context) => {
     const payload = JSON.parse(
       Buffer.from(row.access_token.split(".")[1], "base64").toString(),
     );
-
     if (payload.exp < Date.now() / 1000) {
       return ctx.reply("👀 Vui lòng nhập access token mới.");
     }
