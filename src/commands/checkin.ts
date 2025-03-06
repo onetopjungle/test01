@@ -3,8 +3,10 @@ import { listAddress } from "../constant";
 import { deleteSession, setSession } from "../stores/session";
 import { queryDb, runDb } from "../stores/database";
 import { Context } from "telegraf";
+import { isValidJWTFormat } from "../utils";
+import { isNil } from "lodash";
 
-// 📌 Lệnh checkin
+// Lệnh checkin
 export const checkinCommand = async (ctx: Context) => {
   const userId = ctx.from?.id;
   if (!userId) return;
@@ -31,7 +33,9 @@ export const checkinCommand = async (ctx: Context) => {
 
     const response = await requestCheckin(row.access_token);
     await deleteSession(userId);
-    return ctx.reply(response?.data?.message || "Checkin thành công!");
+    return ctx.reply(
+      response?.data?.message || response?.response?.data?.message,
+    );
   } catch (err) {
     console.error("Checkin error:", err);
     await deleteSession(userId);
@@ -43,6 +47,11 @@ export const checkin = async (ctx: Context | any) => {
   const userId = ctx.from?.id;
   const messageText = ctx.message.text;
 
+  if (!isValidJWTFormat(messageText)) {
+    await deleteSession(userId);
+    return ctx.reply("❌ Access token không hợp lệ. Vui lòng thử lại");
+  }
+
   try {
     await runDb(`UPDATE users SET access_token = ? WHERE user_id = ?`, [
       messageText,
@@ -50,8 +59,19 @@ export const checkin = async (ctx: Context | any) => {
     ]);
 
     const response = await requestCheckin(messageText);
+    if (isNil(response) || isNaN(response)) {
+      await deleteSession(userId);
+      //delete access token
+      await runDb(`UPDATE users SET access_token = ? WHERE user_id = ?`, [
+        null,
+        userId,
+      ]);
+      return ctx.reply("❌ Lỗi khi checkin.");
+    }
     await deleteSession(userId);
-    return ctx.reply(response?.data?.message || "Checkin thành công!");
+    return ctx.reply(
+      response?.data?.message || response?.response?.data?.message,
+    );
   } catch (err) {
     console.error("Checkin error:", err);
     await deleteSession(userId);
@@ -59,7 +79,7 @@ export const checkin = async (ctx: Context | any) => {
   }
 };
 
-// 📌 Gọi API checkin
+// Gọi API checkin
 export const requestCheckin = async (accessToken: string) => {
   try {
     const headers = {
@@ -97,6 +117,6 @@ export const requestCheckin = async (accessToken: string) => {
     return response.data;
   } catch (error) {
     console.error("API call failed:", error);
-    return null;
+    return error;
   }
 };
