@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { queryDb } from "../stores/database";
+import { queryAllDb } from "../stores/database";
 import { requestCheckin } from "../commands/checkin";
 import { setSession } from "../stores/session";
 import { sendMessage } from "../services/bot-service";
@@ -31,7 +31,7 @@ const scheduleRandomCheckin = () => {
 
 const autoCheckin = async () => {
   try {
-    const users = await queryDb(`SELECT user_id, access_token FROM users`);
+    const users = await queryAllDb(`SELECT user_id, access_token FROM users`);
 
     if (!users || users.length === 0) {
       console.log("⚠️ Không có user nào để check-in.");
