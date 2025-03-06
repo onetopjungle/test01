@@ -8,20 +8,24 @@ import { sendMessage } from "../services/bot-service";
 const scheduleRandomCheckin = () => {
   // Tạo thời gian ngẫu nhiên vào buổi sáng (8:00 - 9:00)
   const randomMorningMinute = getRandomMinute();
+  console.log(
+    `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
+  );
   cron.schedule(`${randomMorningMinute} 8 * * 1-5`, async () => {
-    console.log(
-      `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
-    );
+    console.log("Đang check-in buổi sáng...");
     await autoCheckin();
+    console.log("✅ Check-in buổi sáng xong.");
   });
 
   // Tạo thời gian ngẫu nhiên vào buổi tối (18:00 - 19:00)
   const randomEveningMinute = getRandomMinute();
+  console.log(
+    `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
+  );
   cron.schedule(`${randomEveningMinute} 18 * * 1-5`, async () => {
-    console.log(
-      `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
-    );
+    console.log("Đang check-in buổi tối...");
     await autoCheckin();
+    console.log("✅ Check-in buổi tối xong.");
   });
 };
 

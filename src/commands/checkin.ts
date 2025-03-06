@@ -59,7 +59,7 @@ export const checkin = async (ctx: Context | any) => {
     ]);
 
     const response = await requestCheckin(messageText);
-    if (isNil(response?.data?.message) || isNaN(response?.data?.message)) {
+    if (response?.response?.status === 400) {
       await deleteSession(userId);
       //delete access token
       await runDb(`UPDATE users SET access_token = ? WHERE user_id = ?`, [
