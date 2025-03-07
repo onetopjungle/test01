@@ -25,14 +25,14 @@ const scheduleRandomCheckin = () => {
   );
 
   // Tạo cron job check-in sáng
-  cron.schedule(`${randomMorningMinute} 8 * * 1-5`, async () => {
+  cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
     console.log("Đang check-in buổi sáng...");
     await autoCheckin();
     console.log("✅ Check-in buổi sáng xong.");
   });
 
   // Tạo cron job check-in tối
-  cron.schedule(`${randomEveningMinute} 18 * * 1-5`, async () => {
+  cron.schedule(`${randomEveningMinute} 11 * * 1-5`, async () => {
     console.log("Đang check-in buổi tối...");
     await autoCheckin();
     console.log("✅ Check-in buổi tối xong.");
@@ -76,7 +76,7 @@ const autoCheckin = async () => {
       const payload = JSON.parse(
         Buffer.from(user.access_token.split(".")[1], "base64").toString(),
       );
-      if (payload.exp < (Date.now() + 7 * 60 * 60 * 1000) / 1000) {
+      if (payload.exp < (Date.now() - 7 * 60 * 60 * 1000) / 1000) {
         return sendMessage(
           user.user_id,
           "👀 Access token hết hạn. Vui lòng nhập access token mới.",
