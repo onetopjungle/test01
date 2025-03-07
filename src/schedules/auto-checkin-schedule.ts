@@ -6,37 +6,36 @@ import { sendMessage } from "../services/bot-service";
 
 // Hàm để tạo cron job chạy ngẫu nhiên vào mỗi ngày từ thứ 2 đến thứ 6
 const scheduleRandomCheckin = () => {
-  // Tạo thời gian ngẫu nhiên vào buổi sáng (8:00 - 9:00)
-  const randomMorningMinute = getRandomMinute();
-  console.log(
-    `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
-  );
-  cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
-    console.log("Đang check-in buổi sáng...");
-    await autoCheckin();
-    console.log("✅ Check-in buổi sáng xong.");
+  // Cron job reset lại giờ checkin mỗi ngày lúc 00:00 (GMT+7)
+  cron.schedule("0 17 * * 1-5", () => {
+    // 00:00 giờ Việt Nam (GMT+7)
+    const randomMorningMinute = getRandomMinute();
+    const randomEveningMinute = getRandomMinute();
+
+    console.log(
+      `🔄 Cập nhật thời gian mới:`,
+      `\n⏰ Sáng: 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
+      `\n⏰ Tối: 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
+    );
+
+    // Xóa các job cũ trước khi tạo job mới
+    cron.getTasks().forEach((task) => task.stop());
+
+    // Tạo cron job mới với thời gian random
+    cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
+      console.log("Đang check-in buổi sáng...");
+      await autoCheckin();
+      console.log("✅ Check-in buổi sáng xong.");
+    });
+
+    cron.schedule(`${randomEveningMinute} 11 * * 1-5`, async () => {
+      console.log("Đang check-in buổi tối...");
+      await autoCheckin();
+      console.log("✅ Check-in buổi tối xong.");
+    });
   });
 
-  // Tạo thời gian ngẫu nhiên vào buổi tối (18:00 - 19:00)
-  const randomEveningMinute = getRandomMinute();
-  console.log(
-    `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
-  );
-  cron.schedule(`${randomEveningMinute} 11 * * 1-5`, async () => {
-    console.log("Đang check-in buổi tối...");
-    await autoCheckin();
-    console.log("✅ Check-in buổi tối xong.");
-  });
-
-  // logs cron job chạy ngẫu nhiên vào mỗi 00:00 từ thứ 2 đến thứ 6
-  cron.schedule("0 17 * * 1-5", async () => {
-    console.log(
-      `⏰ Check-in ngẫu nhiên vào buổi sáng lúc 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
-    );
-    console.log(
-      `⏰ Check-in ngẫu nhiên vào buổi tối lúc 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
-    );
-  });
+  console.log("✅ Cron job cập nhật thời gian check-in đã được khởi động!");
 };
 
 const autoCheckin = async () => {
@@ -63,7 +62,7 @@ const autoCheckin = async () => {
       const payload = JSON.parse(
         Buffer.from(user.access_token.split(".")[1], "base64").toString(),
       );
-      if (payload.exp < Date.now() / 1000) {
+      if (payload.exp < (Date.now() + 7 * 60 * 60 * 1000) / 1000) {
         return sendMessage(
           user.user_id,
           "👀 Access token hết hạn. Vui lòng nhập access token mới.",
