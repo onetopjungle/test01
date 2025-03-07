@@ -4,38 +4,52 @@ import { requestCheckin } from "../commands/checkin";
 import { deleteSession, setSession } from "../stores/session";
 import { sendMessage } from "../services/bot-service";
 
-// Hàm để tạo cron job chạy ngẫu nhiên vào mỗi ngày từ thứ 2 đến thứ 6
+// Hàm để tạo thời gian ngẫu nhiên trong khoảng 0 - 59 phút
+const getRandomMinute = () => {
+  return Math.floor(Math.random() * 60); // Giới hạn từ 0 đến 59 phút
+};
+
+// Biến lưu thời gian ngẫu nhiên trong ngày
+let randomMorningMinute = getRandomMinute();
+let randomEveningMinute = getRandomMinute();
+
+// Hàm khởi tạo cron job
 const scheduleRandomCheckin = () => {
-  // Cron job reset lại giờ checkin mỗi ngày lúc 00:00 (GMT+7)
-  cron.schedule("0 17 * * 1-5", () => {
-    // 00:00 giờ Việt Nam (GMT+7)
-    const randomMorningMinute = getRandomMinute();
-    const randomEveningMinute = getRandomMinute();
+  console.log("✅ Cron job cập nhật thời gian check-in đã được khởi động!");
+  console.log(`⏰ Hôm nay check-in lúc:`);
+  console.log(
+    `- Sáng: 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
+  );
+  console.log(
+    `- Tối: 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
+  );
 
-    console.log(
-      `🔄 Cập nhật thời gian mới:`,
-      `\n⏰ Sáng: 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
-      `\n⏰ Tối: 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
-    );
-
-    // Xóa các job cũ trước khi tạo job mới
-    cron.getTasks().forEach((task) => task.stop());
-
-    // Tạo cron job mới với thời gian random
-    cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
-      console.log("Đang check-in buổi sáng...");
-      await autoCheckin();
-      console.log("✅ Check-in buổi sáng xong.");
-    });
-
-    cron.schedule(`${randomEveningMinute} 11 * * 1-5`, async () => {
-      console.log("Đang check-in buổi tối...");
-      await autoCheckin();
-      console.log("✅ Check-in buổi tối xong.");
-    });
+  // Tạo cron job check-in sáng
+  cron.schedule(`${randomMorningMinute} 8 * * 1-5`, async () => {
+    console.log("Đang check-in buổi sáng...");
+    await autoCheckin();
+    console.log("✅ Check-in buổi sáng xong.");
   });
 
-  console.log("✅ Cron job cập nhật thời gian check-in đã được khởi động!");
+  // Tạo cron job check-in tối
+  cron.schedule(`${randomEveningMinute} 18 * * 1-5`, async () => {
+    console.log("Đang check-in buổi tối...");
+    await autoCheckin();
+    console.log("✅ Check-in buổi tối xong.");
+  });
+
+  // Cập nhật random giờ mới vào lúc 00:00 (giờ GMT +7) mỗi ngày
+  cron.schedule("0 17 * * 1-5", () => {
+    randomMorningMinute = getRandomMinute();
+    randomEveningMinute = getRandomMinute();
+    console.log("🔄 Cập nhật thời gian mới cho ngày hôm nay:");
+    console.log(
+      `- Sáng: 8:${randomMorningMinute < 10 ? "0" + randomMorningMinute : randomMorningMinute}`,
+    );
+    console.log(
+      `- Tối: 18:${randomEveningMinute < 10 ? "0" + randomEveningMinute : randomEveningMinute}`,
+    );
+  });
 };
 
 const autoCheckin = async () => {
@@ -86,11 +100,6 @@ const autoCheckin = async () => {
   } catch (error) {
     console.error("❌ Lỗi khi chạy auto check-in:", error);
   }
-};
-
-// Hàm để tạo thời gian ngẫu nhiên trong khoảng 0 - 59 phút
-const getRandomMinute = () => {
-  return Math.floor(Math.random() * 60); // Giới hạn từ 0 đến 59 phút
 };
 
 // Đặt lịch cron job cho ngày bắt đầu
