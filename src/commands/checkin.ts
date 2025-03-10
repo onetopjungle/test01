@@ -19,36 +19,41 @@ export const checkinCommand = async (ctx: Context) => {
     ]);
 
     if (!row?.access_token) {
-      return ctx.reply("👀 Vui lòng nhập access token");
+      return ctx.reply(
+        "⚠️ Bạn chưa có access token. Vui lòng gửi token của bạn để tiếp tục.",
+      );
     }
 
     // Kiểm tra token hết hạn
-    const payload = JSON.parse(
-      Buffer.from(row.access_token.split(".")[1], "base64").toString(),
-    );
-    if (payload.exp < (Date.now() - 7 * 60 * 60 * 1000) / 1000) {
-      return ctx.reply("👀 Vui lòng nhập access token mới.");
+    const tokenParts = row.access_token.split(".");
+    if (tokenParts.length !== 3) {
+      return ctx.reply(
+        "❌ Access token không hợp lệ. Vui lòng gửi lại token hợp lệ.",
+      );
+    }
+
+    const payload = JSON.parse(Buffer.from(tokenParts[1], "base64").toString());
+    if (payload.exp < Date.now() / 1000) {
+      return ctx.reply("⏳ Token đã hết hạn. Vui lòng gửi token mới.");
     }
 
     const response = await requestCheckin(row.access_token);
     await deleteSession(userId);
-    return ctx.reply(
-      response?.data?.message || response?.response?.data?.message,
-    );
+    return ctx.reply(response?.data?.message || "✅ Check-in thành công!");
   } catch (err) {
-    console.error("Checkin error:", err);
+    console.error("❌ Lỗi khi check-in:", err);
     await deleteSession(userId);
-    return ctx.reply("❌ Lỗi khi checkin.");
+    return ctx.reply("⚠️ Đã có lỗi xảy ra khi check-in. Vui lòng thử lại sau.");
   }
 };
 
-export const checkin = async (ctx: Context | any) => {
+export const checkin = async (ctx: any) => {
   const userId = ctx.from?.id;
-  const messageText = ctx.message.text;
+  const messageText = ctx.message?.text;
 
   if (!isValidJWTFormat(messageText)) {
     await deleteSession(userId);
-    return ctx.reply("❌ Access token không hợp lệ. Vui lòng thử lại");
+    return ctx.reply("🚫 Access token không hợp lệ. Vui lòng nhập lại.");
   }
 
   try {
@@ -60,21 +65,21 @@ export const checkin = async (ctx: Context | any) => {
     const response = await requestCheckin(messageText);
     if (response?.response?.status === 400) {
       await deleteSession(userId);
-      //delete access token
       await runDb(`UPDATE users SET access_token = ? WHERE user_id = ?`, [
         null,
         userId,
       ]);
-      return ctx.reply("❌ Lỗi khi checkin.");
+      return ctx.reply(
+        "❌ Check-in thất bại! Token không hợp lệ hoặc đã hết hạn.",
+      );
     }
+
     await deleteSession(userId);
-    return ctx.reply(
-      response?.data?.message || response?.response?.data?.message,
-    );
+    return ctx.reply(response?.data?.message || "✅ Check-in thành công!");
   } catch (err) {
-    console.error("Checkin error:", err);
+    console.error("❌ Lỗi khi check-in:", err);
     await deleteSession(userId);
-    return ctx.reply("❌ Lỗi khi checkin.");
+    return ctx.reply("⚠️ Có lỗi xảy ra khi check-in. Vui lòng thử lại sau.");
   }
 };
 
@@ -101,7 +106,6 @@ export const requestCheckin = async (accessToken: string) => {
 
     const pickAddress =
       listAddress[Math.floor(Math.random() * listAddress.length)];
-
     const data = {
       latitude: pickAddress.latitude,
       longitude: pickAddress.longitude,

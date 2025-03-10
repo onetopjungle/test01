@@ -16,31 +16,33 @@ export const addUserCommand = async (ctx: Context) => {
       [userId],
     );
 
-    if (!row) {
+    if (!row || row.length === 0) {
       await deleteSession(userId);
-      return ctx.reply("❌ Bạn không có quyền tạo người dùng.");
+      return ctx.reply("🚫 Bạn không có quyền tạo người dùng.");
     }
 
-    return ctx.reply("👀 Vui lòng nhập ID người dùng mới.");
+    return ctx.reply("👀 Vui lòng nhập ID người dùng mới (5-10 chữ số).");
   } catch (err) {
-    console.error("DB Error:", err);
+    console.error("❌ DB Error:", err);
     await deleteSession(userId);
-    return ctx.reply("❌ Lỗi khi truy vấn database.");
+    return ctx.reply("⚠️ Lỗi khi truy vấn database. Vui lòng thử lại sau.");
   }
 };
 
 // 📌 Thêm user mới
 export const addUser = async (ctx: Context | any) => {
   const userId = ctx.from?.id;
-  const messageText = ctx.message.text;
+  const messageText = ctx.message?.text?.trim();
 
   // Kiểm tra ID hợp lệ (số, từ 5 đến 10 chữ số)
-  if (!/^\d{5,10}$/.test(messageText)) {
+  if (!messageText || !/^\d{5,10}$/.test(messageText)) {
     await deleteSession(userId);
-    return ctx.reply("❌ ID người dùng không hợp lệ.");
+    return ctx.reply(
+      "🚫 ID người dùng không hợp lệ. Vui lòng nhập số từ 5 đến 10 chữ số.",
+    );
   }
 
-  const newUserId = parseInt(messageText);
+  const newUserId = parseInt(messageText, 10);
 
   try {
     const existingUser = await queryDb(
@@ -48,17 +50,20 @@ export const addUser = async (ctx: Context | any) => {
       [newUserId],
     );
 
-    if (existingUser) {
-      return ctx.reply("❌ Người dùng này đã tồn tại.");
+    if (existingUser && existingUser.length > 0) {
+      await deleteSession(userId);
+      return ctx.reply("⚠️ Người dùng này đã tồn tại.");
     }
 
     await runDb(`INSERT INTO users (user_id, role) VALUES (?, 1)`, [newUserId]);
 
     await deleteSession(userId);
-    return ctx.reply(`✅ Người dùng với ID ${newUserId} đã được thêm.`);
+    return ctx.reply(
+      `✅ Người dùng với ID *${newUserId}* đã được thêm thành công.`,
+    );
   } catch (err) {
-    console.error("DB Error:", err);
+    console.error("❌ DB Error:", err);
     await deleteSession(userId);
-    return ctx.reply("❌ Lỗi khi thêm người dùng.");
+    return ctx.reply("⚠️ Lỗi khi thêm người dùng. Vui lòng thử lại.");
   }
 };

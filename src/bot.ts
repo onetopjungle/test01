@@ -11,13 +11,20 @@ import "../src/schedules/auto-checkin-schedule";
 
 dotenv.config();
 
-// Khởi tạo bot với token từ .env
-const bot = new Telegraf(process.env.BOT_TOKEN || "");
+// Kiểm tra BOT_TOKEN trước khi khởi động bot
+if (!process.env.BOT_TOKEN) {
+  console.error("❌ [Bot] Không tìm thấy BOT_TOKEN trong .env!");
+  process.exit(1);
+}
+
+const bot = new Telegraf(process.env.BOT_TOKEN);
+console.log("🚀 [Bot] Đang khởi động...");
 
 bot.use(userMiddleware);
 
-// Thiết lập các lệnh cho bot
+// Thiết lập danh sách lệnh cho bot
 bot.telegram.setMyCommands(listCommand);
+console.log("✅ [Bot] Danh sách lệnh đã được thiết lập.");
 
 // Định nghĩa danh sách lệnh và handler tương ứng
 const commands = {
@@ -27,38 +34,64 @@ const commands = {
   checkin: checkinCommand,
 };
 
-// Tự động đăng ký lệnh
-Object.entries(commands).forEach(([cmd, handler]) => bot.command(cmd, handler));
+// Đăng ký lệnh
+Object.entries(commands).forEach(([cmd, handler]) => {
+  bot.command(cmd, async (ctx) => {
+    console.log(`📢 [Command] /${cmd} được gọi bởi ${ctx.from?.id}`);
+    await handler(ctx);
+  });
+});
 
 // Lắng nghe tin nhắn văn bản
 bot.on("text", async (ctx) => {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  // Lấy session của user từ Redis
+  console.log(
+    `📩 [Message] Nhận tin nhắn từ user ${userId}: "${ctx.message.text}"`,
+  );
+
+  // Lấy session từ Redis
   const session = await getSession(userId);
 
-  switch (session?.action) {
-    case "adduser":
-      await addUser(ctx);
-      await deleteSession(userId);
-      break;
+  if (session) {
+    switch (session.action) {
+      case "adduser":
+        console.log("➕ [Session] Thực hiện thêm user...");
+        await addUser(ctx);
+        await deleteSession(userId);
+        await ctx.reply("✅ User đã được thêm thành công!");
+        break;
 
-    case "checkin":
-      await checkin(ctx);
-      await deleteSession(userId);
-      break;
+      case "checkin":
+        console.log("📍 [Session] Thực hiện check-in...");
+        await checkin(ctx);
+        await deleteSession(userId);
+        await ctx.reply("✅ Check-in thành công!");
+        break;
 
-    default:
-      await ctx.reply("Tôi có thể giúp gì cho bạn?");
-      break;
+      default:
+        await ctx.reply("⚠️ Không nhận diện được hành động. Vui lòng thử lại.");
+        break;
+    }
+  } else {
+    console.log("❓ [Bot] User không có session, hiển thị hướng dẫn.");
+    await ctx.reply("👋 Xin chào! Nhập /help để xem danh sách lệnh.");
   }
 });
 
 // Bắt đầu bot
-bot.launch();
-console.log("🚀 Bot đang chạy...");
+bot
+  .launch()
+  .then(() => console.log("🤖 [Bot] Đã sẵn sàng nhận lệnh!"))
+  .catch((err) => console.error("❌ [Bot] Lỗi khi khởi động:", err));
 
 // Xử lý lỗi khi bot dừng
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.once("SIGINT", () => {
+  console.log("🛑 [Bot] Nhận SIGINT, đang dừng...");
+  bot.stop("SIGINT");
+});
+process.once("SIGTERM", () => {
+  console.log("🛑 [Bot] Nhận SIGTERM, đang dừng...");
+  bot.stop("SIGTERM");
+});

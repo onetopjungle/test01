@@ -27,6 +27,26 @@ export const listAddress = [
     latitude: 20.999021,
     longitude: 105.800871,
   },
+  {
+    latitude: 20.999202,
+    longitude: 105.800654,
+  },
+  {
+    latitude: 20.999666,
+    longitude: 105.800515,
+  },
+  {
+    latitude: 20.999756,
+    longitude: 105.800952,
+  },
+  {
+    latitude: 20.999243,
+    longitude: 105.801119,
+  },
+  {
+    latitude: 20.999386,
+    longitude: 105.800966,
+  },
 ];
 
 export const listCommand = [
