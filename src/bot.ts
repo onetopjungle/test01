@@ -37,7 +37,7 @@ const commands = {
 // Đăng ký lệnh
 Object.entries(commands).forEach(([cmd, handler]) => {
   bot.command(cmd, async (ctx) => {
-    console.log(`📢 [Command] /${cmd} được gọi bởi ${ctx.from?.id}`);
+    // console.log(`📢 [Command] /${cmd} được gọi bởi ${ctx.from?.id}`);
     await handler(ctx);
   });
 });
@@ -47,9 +47,9 @@ bot.on("text", async (ctx) => {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  console.log(
-    `📩 [Message] Nhận tin nhắn từ user ${userId}: "${ctx.message.text}"`,
-  );
+  // console.log(
+  //   `📩 [Message] Nhận tin nhắn từ user ${userId}: "${ctx.message.text}"`,
+  // );
 
   // Lấy session từ Redis
   const session = await getSession(userId);
@@ -57,14 +57,14 @@ bot.on("text", async (ctx) => {
   if (session) {
     switch (session.action) {
       case "adduser":
-        console.log("➕ [Session] Thực hiện thêm user...");
+        // console.log("➕ [Session] Thực hiện thêm user...");
         await addUser(ctx);
         await deleteSession(userId);
         await ctx.reply("✅ User đã được thêm thành công!");
         break;
 
       case "checkin":
-        console.log("📍 [Session] Thực hiện check-in...");
+        // console.log("📍 [Session] Thực hiện check-in...");
         await checkin(ctx);
         await deleteSession(userId);
         await ctx.reply("✅ Check-in thành công!");
@@ -75,7 +75,7 @@ bot.on("text", async (ctx) => {
         break;
     }
   } else {
-    console.log("❓ [Bot] User không có session, hiển thị hướng dẫn.");
+    // console.log("❓ [Bot] User không có session, hiển thị hướng dẫn.");
     await ctx.reply("👋 Xin chào! Nhập /help để xem danh sách lệnh.");
   }
 });
