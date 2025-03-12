@@ -60,14 +60,12 @@ bot.on("text", async (ctx) => {
         // console.log("➕ [Session] Thực hiện thêm user...");
         await addUser(ctx);
         await deleteSession(userId);
-        await ctx.reply("✅ User đã được thêm thành công!");
         break;
 
       case "checkin":
         // console.log("📍 [Session] Thực hiện check-in...");
         await checkin(ctx);
         await deleteSession(userId);
-        await ctx.reply("✅ Check-in thành công!");
         break;
 
       default:
