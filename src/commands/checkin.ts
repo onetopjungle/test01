@@ -89,7 +89,7 @@ export const requestCheckin = async (accessToken: string) => {
     const headers = {
       Host: "api-gateway.acheckin.io",
       "Access-Control-Allow-Origin": "*",
-      "x-timestamp": `${Date.now() - 7 * 60 * 60 * 1000}`,
+      "x-timestamp": `${Date.now() + 7 * 60 * 60 * 1000}`,
       provider: "GOOGLE",
       Accept: "*/*",
       Authorization: accessToken,

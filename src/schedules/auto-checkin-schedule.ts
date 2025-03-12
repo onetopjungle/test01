@@ -74,7 +74,7 @@ const autoCheckin = async () => {
       const payload = JSON.parse(
         Buffer.from(user.access_token.split(".")[1], "base64").toString(),
       );
-      if (payload.exp < (Date.now() - 7 * 60 * 60 * 1000) / 1000) {
+      if (payload.exp < (Date.now() + 7 * 60 * 60 * 1000) / 1000) {
         return sendMessage(
           user.user_id,
           "⏳ Access Token của bạn đã hết hạn! 🔄 Vui lòng nhập Access Token mới.",
