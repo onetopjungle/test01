@@ -39,7 +39,16 @@ export const checkinCommand = async (ctx: Context) => {
 
     const response = await requestCheckin(row.access_token);
     await deleteSession(userId);
-    return ctx.reply(response?.data?.message || "✅ Check-in thành công!");
+    if (response?.data?.message) {
+      return ctx.reply(response?.data?.message);
+    } else {
+      await runDb(`UPDATE users SET access_token = ? WHERE user_id = ?`, [
+        null,
+        userId,
+      ]);
+      console.log("Lỗi check-in không trả về message");
+      return ctx.reply("❌ Lỗi khi check-in");
+    }
   } catch (err) {
     console.error("❌ Lỗi khi check-in:", err);
     await deleteSession(userId);
@@ -75,7 +84,16 @@ export const checkin = async (ctx: any) => {
     }
 
     await deleteSession(userId);
-    return ctx.reply(response?.data?.message || "✅ Check-in thành công!");
+    if (response?.data?.message) {
+      return ctx.reply(response?.data?.message);
+    } else {
+      await runDb(`UPDATE users SET access_token = ? WHERE user_id = ?`, [
+        null,
+        userId,
+      ]);
+      console.log("Lỗi check-in không trả về message");
+      return ctx.reply("❌ Lỗi khi check-in");
+    }
   } catch (err) {
     console.error("❌ Lỗi khi check-in:", err);
     await deleteSession(userId);
