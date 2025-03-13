@@ -3,11 +3,15 @@ import dotenv from "dotenv";
 import { startCommand } from "./commands/start";
 import { helpCommand } from "./commands/help";
 import { deleteSession, getSession } from "./stores/session";
-import { addUser, addUserCommand } from "./commands/adduser";
+import { addUser, addUserCommand } from "./commands/addUser";
 import { checkin, checkinCommand } from "./commands/checkin";
 import { userMiddleware } from "./middlewares/user-middleware";
 import { listCommand } from "./constant";
 import "../src/schedules/auto-checkin-schedule";
+import { deleteUser, deleteUserCommand } from "./commands/deleteUser";
+import { onAutoCheckinCommand } from "./commands/onAutoCheckin";
+import { offAutoCheckinCommand } from "./commands/offAutoCheckin";
+import { addMultiUser, addMultiUserCommand } from "./commands/addMultiUser";
 
 dotenv.config();
 
@@ -30,8 +34,12 @@ console.log("✅ [Bot] Danh sách lệnh đã được thiết lập.");
 const commands = {
   start: startCommand,
   help: helpCommand,
-  adduser: addUserCommand,
   checkin: checkinCommand,
+  add_user: addUserCommand,
+  add_multi_user: addMultiUserCommand,
+  delete_user: deleteUserCommand,
+  on_auto_checkin: onAutoCheckinCommand,
+  off_auto_checkin: offAutoCheckinCommand,
 };
 
 // Đăng ký lệnh
@@ -56,15 +64,26 @@ bot.on("text", async (ctx) => {
 
   if (session) {
     switch (session.action) {
-      case "adduser":
+      case "add_user":
         // console.log("➕ [Session] Thực hiện thêm user...");
         await addUser(ctx);
+        await deleteSession(userId);
+        break;
+
+      case "add_multi_user":
+        // console.log("➕ [Session] Thực hiện thêm user...");
+        await addMultiUser(ctx);
         await deleteSession(userId);
         break;
 
       case "checkin":
         // console.log("📍 [Session] Thực hiện check-in...");
         await checkin(ctx);
+        await deleteSession(userId);
+        break;
+
+      case "delete_user":
+        await deleteUser(ctx);
         await deleteSession(userId);
         break;
 

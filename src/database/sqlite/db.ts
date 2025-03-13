@@ -16,7 +16,8 @@ db.run(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER UNIQUE NOT NULL,
         role INTEGER DEFAULT 1,
-        access_token TEXT DEFAULT NULL
+        access_token TEXT DEFAULT NULL,
+        is_auto_checkin INTEGER DEFAULT 1
     )`,
   async (err) => {
     if (err) {

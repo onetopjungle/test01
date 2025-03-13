@@ -1,14 +1,13 @@
 import { Context } from "telegraf";
-import db from "../database/sqlite/db";
 import { deleteSession, setSession } from "../stores/session";
 import { queryDb, runDb } from "../stores/database";
 
-// 📌 Lệnh thêm user
-export const addUserCommand = async (ctx: Context) => {
+// 📌 Lệnh xóa user
+export const deleteUserCommand = async (ctx: Context) => {
   const userId = ctx.from?.id;
   if (!userId) return;
 
-  await setSession(userId, { action: "adduser" });
+  await setSession(userId, { action: "delete_user" });
 
   try {
     const row = await queryDb(
@@ -18,10 +17,10 @@ export const addUserCommand = async (ctx: Context) => {
 
     if (!row || row.length === 0) {
       await deleteSession(userId);
-      return ctx.reply("🚫 Bạn không có quyền tạo người dùng.");
+      return ctx.reply("🚫 Bạn không có quyền xóa người dùng.");
     }
 
-    return ctx.reply("👀 Vui lòng nhập ID người dùng mới (5-10 chữ số).");
+    return ctx.reply("🔍 Vui lòng nhập ID người dùng cần xóa.");
   } catch (err) {
     console.error("❌ DB Error:", err);
     await deleteSession(userId);
@@ -29,8 +28,8 @@ export const addUserCommand = async (ctx: Context) => {
   }
 };
 
-// 📌 Thêm user mới
-export const addUser = async (ctx: Context | any) => {
+// 📌 Xóa user
+export const deleteUser = async (ctx: Context | any) => {
   const userId = ctx.from?.id;
   const messageText = ctx.message?.text?.trim();
 
@@ -42,28 +41,27 @@ export const addUser = async (ctx: Context | any) => {
     );
   }
 
-  const newUserId = parseInt(messageText, 10);
+  const deleteUserId = parseInt(messageText, 10);
 
   try {
     const existingUser = await queryDb(
       `SELECT * FROM users WHERE user_id = ?`,
-      [newUserId],
+      [deleteUserId],
     );
 
-    if (existingUser && existingUser.length > 0) {
+    if (!existingUser || existingUser.length === 0) {
       await deleteSession(userId);
-      return ctx.reply("⚠️ Người dùng này đã tồn tại.");
+      return ctx.reply("⚠️ Người dùng không tồn tại trong hệ thống.");
     }
 
-    await runDb(`INSERT INTO users (user_id, role) VALUES (?, 1)`, [newUserId]);
+    await runDb(`DELETE FROM users WHERE user_id = ?`, [deleteUserId]);
 
     await deleteSession(userId);
-    return ctx.reply(
-      `✅ Người dùng với ID *${newUserId}* đã được thêm thành công.`,
-    );
+    console.log(`✅ Người dùng với ID ${deleteUserId} đã bị xóa.`);
+    return ctx.reply(`✅ Người dùng với ID ${deleteUserId} đã bị xóa.`);
   } catch (err) {
     console.error("❌ DB Error:", err);
     await deleteSession(userId);
-    return ctx.reply("⚠️ Lỗi khi thêm người dùng. Vui lòng thử lại.");
+    return ctx.reply("⚠️ Lỗi khi xóa người dùng. Vui lòng thử lại.");
   }
 };

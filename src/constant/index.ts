@@ -52,6 +52,10 @@ export const listAddress = [
 export const listCommand = [
   { command: "start", description: "Bắt đầu bot" },
   { command: "help", description: "Hiển thị hướng dẫn" },
-  { command: "adduser", description: "Thêm người dùng" },
   { command: "checkin", description: "Checkin" },
+  { command: "add_user", description: "Thêm người dùng" },
+  { command: "add_multi_user", description: "Thêm nhiều người dùng" },
+  { command: "delete_user", description: "Xoá người dùng" },
+  { command: "on_auto_checkin", description: "Bật tự động check-in" },
+  { command: "off_auto_checkin", description: "Tắt tự động check-in" },
 ];
