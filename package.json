@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "pm2 start src/bot.ts --name my-telegram-bot --interpreter ts-node\n",
-    "_start": "nodemon --exec ts-node src/bot.ts",
+    "_start": "pm2 start src/bot.ts --name my-telegram-bot --interpreter ts-node\n",
+    "start": "nodemon --exec ts-node src/bot.ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
