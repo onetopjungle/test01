@@ -4,153 +4,97 @@ import { requestCheckin } from "../commands/checkin";
 import { deleteSession, setSession } from "../stores/session";
 import { sendMessage } from "../services/bot-service";
 
-// 🕰️ Giải thích múi giờ:
-// Server đang chạy theo GMT, nhưng Việt Nam là GMT+7. Do đó, ta cần -7 giờ để đồng bộ với giờ Việt Nam.
-
-// 🎲 Hàm tạo phút ngẫu nhiên từ 0 - 59
 const getRandomMinute = () => Math.floor(Math.random() * 60);
-
-// ⏳ Lưu trữ phút ngẫu nhiên cho sáng và tối
 let randomMorningMinute = getRandomMinute();
 let randomEveningMinute = getRandomMinute();
 
-// 📅 Khởi động lịch check-in tự động
 const scheduleRandomCheckin = () => {
   console.log("✅ [CRON] Bot đã khởi động lịch trình check-in!");
-  console.log(`⏰ [Hôm nay check-in lúc]:`);
+  updateCheckinSchedule();
+};
+
+const updateCheckinSchedule = () => {
+  randomMorningMinute = getRandomMinute();
+  randomEveningMinute = getRandomMinute();
+
+  console.log("🔄 [CẬP NHẬT] Giờ check-in mới:");
   console.log(`🌞 Sáng: 08:${randomMorningMinute.toString().padStart(2, "0")}`);
   console.log(`🌙 Tối: 18:${randomEveningMinute.toString().padStart(2, "0")}`);
 
-  // 🕗 Cron job check-in sáng
   cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
     console.log("🌞 Đang check-in buổi sáng...");
     await autoCheckin();
-    console.log("✅ [Sáng] Tất cả người dùng đã check-in xong.");
+    console.log("✅ [Sáng] Check-in xong.");
   });
 
-  // 🕕 Cron job check-in tối
   cron.schedule(`${randomEveningMinute} 11 * * 1-5`, async () => {
     console.log("🌙 Đang check-in buổi tối...");
     await autoCheckin();
-    console.log("✅ [Tối] Tất cả người dùng đã check-in xong.");
+    console.log("✅ [Tối] Check-in xong.");
   });
 
-  // 🔄 Cập nhật thời gian check-in mới mỗi ngày lúc 00:00 (GMT+7)
-  cron.schedule("0 17 * * 0-5", async () => {
-    randomMorningMinute = getRandomMinute();
-    randomEveningMinute = getRandomMinute();
-    console.log("🔄 [CẬP NHẬT] Giờ check-in mới cho ngày hôm nay:");
-    console.log(
-      `🌞 Sáng: 08:${randomMorningMinute.toString().padStart(2, "0")}`,
-    );
-    console.log(
-      `🌙 Tối: 18:${randomEveningMinute.toString().padStart(2, "0")}`,
-    );
-
-    // Gửi thông báo cho những người dùng đã bật auto checkin
-    await notifyUsersForAutoCheckin(
-      `08:${randomMorningMinute.toString().padStart(2, "0")}`,
-      `18:${randomEveningMinute.toString().padStart(2, "0")}`,
-    );
-  });
+  notifyUsersForAutoCheckin(
+    `08:${randomMorningMinute.toString().padStart(2, "0")}`,
+    `18:${randomEveningMinute.toString().padStart(2, "0")}`,
+  );
 };
 
-// 🤖 Hàm tự động check-in cho tất cả user
+cron.schedule("0 17 * * 0-5", async () => {
+  updateCheckinSchedule();
+});
+
 const autoCheckin = async () => {
   try {
     const users = await queryAllDb(
-      `SELECT user_id, access_token FROM users WHERE is_auto_checkin = 1`,
+      "SELECT user_id, access_token FROM users WHERE is_auto_checkin = 1",
     );
+    if (!users || users.length === 0) return;
 
-    if (!users || users.length === 0) {
-      console.log("⚠️ [CHECK-IN] Không có người dùng nào để check-in.");
-      return;
-    }
-
-    // 🚀 Check-in cho từng user song song
-    const checkinPromises = users.map(async (user: any) => {
-      await setSession(user.user_id, { action: "checkin" });
-
-      if (!user.access_token) {
-        return sendMessage(
-          user.user_id,
-          "🔑 Bạn chưa có Access Token! Vui lòng nhập Access Token của bạn.",
-        );
-      }
-
-      // 🔍 Kiểm tra thời hạn Access Token
-      const payload = JSON.parse(
-        Buffer.from(user.access_token.split(".")[1], "base64").toString(),
-      );
-      if (payload.exp < (Date.now() + 7 * 60 * 60 * 1000) / 1000) {
-        return sendMessage(
-          user.user_id,
-          "⏳ Access Token của bạn đã hết hạn! 🔄 Vui lòng nhập Access Token mới.",
-        );
-      }
-
-      try {
-        const response = await requestCheckin(user.access_token);
-        await deleteSession(user.user_id);
-        if (response?.data?.message) {
-          // await sendMessage(
-          //   user.user_id,
-          //   `✅ [CHECK-IN-AUTO] Cho user ${user.user_id}:\n📌 Kết quả: ${
-          //     response?.data?.message
-          //   }`,
-          // );
-          await sendMessage(user.user_id, `😏 Xong rồi đó, khỏi cảm ơn!`);
-        } else {
-          // await sendMessage(
-          //   user.user_id,
-          //   `✅ [CHECK-IN-AUTO] Cho user ${user.user_id}:\n📌 Kết quả: ${
-          //     response?.data?.message || "Thành công!"
-          //   }`,
-          // );
-          await sendMessage(user.user_id, `❌ Ối dồi ôi, có biến rồi!`);
+    await Promise.all(
+      users.map(async (user) => {
+        await setSession(user.user_id, { action: "checkin" });
+        if (!user.access_token) {
+          return sendMessage(user.user_id, "🔑 Bạn chưa có Access Token!");
         }
-      } catch (error) {
-        console.error(`❌ [CHECK-IN-AUTO] Cho user ${user.user_id}: `, error);
-      }
-    });
-
-    await Promise.all(checkinPromises);
-    console.log("✅ [CHECK-IN-AUTO] Đã check-in hoàn tất cho tất cả user.");
+        try {
+          const response = await requestCheckin(user.access_token);
+          await deleteSession(user.user_id);
+          await sendMessage(
+            user.user_id,
+            response?.data?.message
+              ? "😏 Xong rồi! Khỏi cảm ơn"
+              : "❌ Ối dồi ôi, có biến rồi!",
+          );
+        } catch (error) {
+          console.error(`❌ [CHECK-IN] User ${user.user_id}: `, error);
+        }
+      }),
+    );
   } catch (error) {
-    console.error("❌ [CHECK-IN-AUTO] Lỗi khi chạy auto check-in:", error);
+    console.error("❌ [CHECK-IN] Lỗi khi chạy auto check-in:", error);
   }
 };
 
-// 📢 Gửi thông báo cho các user bật auto checkin
 const notifyUsersForAutoCheckin = async (
   morningTime: string,
   eveningTime: string,
 ) => {
   try {
     const users = await queryAllDb(
-      `SELECT user_id FROM users WHERE is_auto_checkin = 1`,
+      "SELECT user_id FROM users WHERE is_auto_checkin = 1",
     );
-
-    if (!users || users.length === 0) {
-      console.log("⚠️ [NOTIFY] Không có người dùng nào bật auto checkin.");
-      return;
-    }
-
-    const notifyPromises = users.map(async (user: any) => {
-      await sendMessage(
-        user.user_id,
-        `🔄 [CẬP NHẬT] Giờ check-in mới cho ngày hôm nay:\n🌞 Sáng: ${morningTime}\n🌙 Tối: ${eveningTime}`,
-      );
-    });
-
-    await Promise.all(notifyPromises);
-    console.log(
-      "✅ [NOTIFY] Đã gửi thông báo cho tất cả người dùng bật auto checkin.",
+    if (!users || users.length === 0) return;
+    await Promise.all(
+      users.map((user) =>
+        sendMessage(
+          user.user_id,
+          `🔄 Giờ check-in mới:\n🌞 Sáng: ${morningTime}\n🌙 Tối: ${eveningTime}`,
+        ),
+      ),
     );
   } catch (error) {
-    console.error("❌ [NOTIFY] Lỗi khi gửi thông báo cho người dùng:", error);
+    console.error("❌ [NOTIFY] Lỗi khi gửi thông báo:", error);
   }
 };
 
-// 🚀 Bắt đầu cron job
 scheduleRandomCheckin();
