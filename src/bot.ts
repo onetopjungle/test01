@@ -12,6 +12,8 @@ import { deleteUser, deleteUserCommand } from "./commands/deleteUser";
 import { onAutoCheckinCommand } from "./commands/onAutoCheckin";
 import { offAutoCheckinCommand } from "./commands/offAutoCheckin";
 import { addMultiUser, addMultiUserCommand } from "./commands/addMultiUser";
+import { updateToken, updateTokenCommand } from "./commands/updateToken";
+import { testCommand } from "./commands/test";
 
 dotenv.config();
 
@@ -40,6 +42,8 @@ const commands = {
   delete_user: deleteUserCommand,
   on_auto_checkin: onAutoCheckinCommand,
   off_auto_checkin: offAutoCheckinCommand,
+  update_token: updateTokenCommand,
+  test_feature: testCommand,
 };
 
 // Đăng ký lệnh
@@ -84,6 +88,11 @@ bot.on("text", async (ctx) => {
 
       case "delete_user":
         await deleteUser(ctx);
+        await deleteSession(userId);
+        break;
+
+      case "update_token":
+        await updateToken(ctx);
         await deleteSession(userId);
         break;
 

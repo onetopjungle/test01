@@ -58,4 +58,6 @@ export const listCommand = [
   { command: "delete_user", description: "Xoá người dùng" },
   { command: "on_auto_checkin", description: "Bật tự động check-in" },
   { command: "off_auto_checkin", description: "Tắt tự động check-in" },
+  { command: "update_token", description: "Cập nhật token" },
+  { command: "test_feature", description: "Test" },
 ];

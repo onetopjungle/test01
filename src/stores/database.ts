@@ -21,6 +21,16 @@ export const runDb = (sql: string, params: any[] = []) => {
   });
 };
 
+// Hàm hỗ trợ chạy truy vấn insert/update/delete trả về số lượng những dòng bị thay đổi
+export const runDb2 = (sql: string, params: any[] = []) => {
+  return new Promise<number>((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) return reject(err);
+      resolve(this.changes); // ✅ trả về số dòng bị ảnh hưởng
+    });
+  });
+};
+
 // Hàm hỗ trợ chạy transaction cho nhiều câu lệnh SQL
 export const transactionDb = async (
   queries: { sql: string; params?: any[] }[],

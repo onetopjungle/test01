@@ -40,8 +40,8 @@ const updateCheckinSchedule = async () => {
   });
 
   await notifyUsersForAutoCheckin(
-      `08:${randomMorningMinute.toString().padStart(2, "0")}`,
-      `18:${randomEveningMinute.toString().padStart(2, "0")}`,
+    `08:${randomMorningMinute.toString().padStart(2, "0")}`,
+    `18:${randomEveningMinute.toString().padStart(2, "0")}`,
   );
 };
 
@@ -52,29 +52,29 @@ cron.schedule("0 17 * * 0-5", async () => {
 const autoCheckin = async () => {
   try {
     const users = await queryAllDb(
-        "SELECT user_id, access_token FROM users WHERE is_auto_checkin = 1",
+      "SELECT user_id, access_token FROM users WHERE is_auto_checkin = 1",
     );
     if (!users || users.length === 0) return;
 
     await Promise.all(
-        users.map(async (user) => {
-          await setSession(user.user_id, { action: "checkin" });
-          if (!user.access_token) {
-            return sendMessage(user.user_id, "🔑 Bạn chưa có Access Token!");
-          }
-          try {
-            const response = await requestCheckin(user.access_token);
-            await deleteSession(user.user_id);
-            await sendMessage(
-                user.user_id,
-                response?.data?.message
-                    ? "😏 Xong rồi! Khỏi cảm ơn"
-                    : "❌ Ối dồi ôi, có biến rồi!",
-            );
-          } catch (error) {
-            console.error(`❌ [CHECK-IN] User ${user.user_id}: `, error);
-          }
-        }),
+      users.map(async (user) => {
+        await setSession(user.user_id, { action: "checkin" });
+        if (!user.access_token) {
+          return sendMessage(user.user_id, "🔑 Bạn chưa có Access Token!");
+        }
+        try {
+          const response = await requestCheckin(user.access_token);
+          await deleteSession(user.user_id);
+          await sendMessage(
+            user.user_id,
+            response?.data?.message
+              ? "😏 Xong rồi! Khỏi cảm ơn"
+              : "❌ Ối dồi ôi, có biến rồi!",
+          );
+        } catch (error) {
+          console.error(`❌ [CHECK-IN] User ${user.user_id}: `, error);
+        }
+      }),
     );
   } catch (error) {
     console.error("❌ [CHECK-IN] Lỗi khi chạy auto check-in:", error);
@@ -82,21 +82,21 @@ const autoCheckin = async () => {
 };
 
 const notifyUsersForAutoCheckin = async (
-    morningTime: string,
-    eveningTime: string,
+  morningTime: string,
+  eveningTime: string,
 ) => {
   try {
     const users = await queryAllDb(
-        "SELECT user_id FROM users WHERE is_auto_checkin = 1",
+      "SELECT user_id FROM users WHERE is_auto_checkin = 1 AND role = 0",
     );
     if (!users || users.length === 0) return;
     await Promise.all(
-        users.map((user) =>
-            sendMessage(
-                user.user_id,
-                `🔄 Giờ check-in mới:\n🌞 Sáng: ${morningTime}\n🌙 Tối: ${eveningTime}`,
-            ),
+      users.map((user) =>
+        sendMessage(
+          user.user_id,
+          `🔄 Giờ check-in mới:\n🌞 Sáng: ${morningTime}\n🌙 Tối: ${eveningTime}`,
         ),
+      ),
     );
   } catch (error) {
     console.error("❌ [NOTIFY] Lỗi khi gửi thông báo:", error);
