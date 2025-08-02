@@ -62,8 +62,14 @@ const autoCheckin = async () => {
         if (!user.access_token) {
           return sendMessage(user.user_id, "🔑 Bạn chưa có Access Token!");
         }
+        if (!user.meta_data) {
+          return sendMessage(user.user_id, "🔑 Bạn chưa có Config!");
+        }
         try {
-          const response = await requestCheckin(user.access_token);
+          const response = await requestCheckin(
+            user.access_token,
+            user.meta_data,
+          );
           await deleteSession(user.user_id);
           await sendMessage(
             user.user_id,

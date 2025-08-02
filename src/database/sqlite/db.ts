@@ -17,7 +17,8 @@ db.run(
         user_id INTEGER UNIQUE NOT NULL,
         role INTEGER DEFAULT 1,
         access_token TEXT DEFAULT NULL,
-        is_auto_checkin INTEGER DEFAULT 1
+        is_auto_checkin INTEGER DEFAULT 1,
+        meta_data TEXT DEFAULT NULL
     )`,
   async (err) => {
     if (err) {
@@ -31,7 +32,7 @@ db.run(
 
 // Hàm tạo user admin nếu chưa tồn tại
 const createAdminUser = async () => {
-  const adminUserId = 5706663809;
+  const adminUserId = 7564303681;
   const adminRole = 0; // 0 = admin, 1 = user
 
   try {

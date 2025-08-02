@@ -1,6 +1,7 @@
 import { Context } from "telegraf";
 import { deleteSession, setSession } from "../stores/session";
-import { queryDb } from "../stores/database";
+import { queryAllDb, queryDb } from "../stores/database";
+import { parseSimpleCurl } from "./checkin";
 
 export const testCommand = async (ctx: Context) => {
   const userId = ctx.from?.id;
@@ -10,7 +11,10 @@ export const testCommand = async (ctx: Context) => {
 
   try {
     const row = await queryDb(
-      `SELECT * FROM users WHERE user_id = ? AND role = 0`,
+      `SELECT *
+       FROM users
+       WHERE user_id = ?
+         AND role = 0`,
       [userId],
     );
 
@@ -20,6 +24,7 @@ export const testCommand = async (ctx: Context) => {
     }
 
     // await autoCheckinTest();
+    // await getMetaData();
   } catch (err) {
     console.error("❌ DB Error:", err);
     await deleteSession(userId);
@@ -55,6 +60,56 @@ export const testCommand = async (ctx: Context) => {
 //         }
 //       }),
 //     );
+//   } catch (error) {
+//     console.error("❌ [CHECK-IN] Lỗi khi chạy auto check-in:", error);
+//   }
+// };
+
+// const getMetaData = async () => {
+//   try {
+//     const users = await queryDb(
+//       "SELECT * FROM users WHERE user_id = 7854063382",
+//     );
+//     if (!users || users.length === 0) return;
+//
+//     const parsed = parseSimpleCurl(users.meta_data);
+//
+//     console.log("asdasdas", parseSimpleCurl(users.meta_data));
+//
+//     let data;
+//
+//     const headers = {
+//       ...parsed.headers,
+//       Authorization: users.access_token,
+//       "x-timestamp": `${Date.now() + 7 * 60 * 60 * 1000}`,
+//     };
+//
+//     if (parsed.body) {
+//       try {
+//         // Nếu là JSON → parse object
+//         if (parsed.headers["Content-Type"]?.includes("application/json")) {
+//           data = JSON.parse(parsed.body);
+//         } else {
+//           // Nếu là form → parse thủ công
+//           data = Object.fromEntries(
+//             parsed.body.split("&").map((pair) => {
+//               const [key, value] = pair.split("=");
+//               return [key, decodeURIComponent(value || "")];
+//             }),
+//           );
+//         }
+//       } catch (e) {
+//         console.warn("⚠️ Không parse được body từ metaData, bỏ qua:", e);
+//       }
+//     }
+//
+//     console.log("data", data);
+//     console.log("reqqqqqq", {
+//       method: parsed.method?.toLowerCase() || "post",
+//       url: parsed.url,
+//       headers,
+//       data,
+//     });
 //   } catch (error) {
 //     console.error("❌ [CHECK-IN] Lỗi khi chạy auto check-in:", error);
 //   }

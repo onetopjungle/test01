@@ -14,6 +14,7 @@ import { offAutoCheckinCommand } from "./commands/offAutoCheckin";
 import { addMultiUser, addMultiUserCommand } from "./commands/addMultiUser";
 import { updateToken, updateTokenCommand } from "./commands/updateToken";
 import { testCommand } from "./commands/test";
+import { updateConfig, updateConfigCommand } from "./commands/updateConfig";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ const commands = {
   on_auto_checkin: onAutoCheckinCommand,
   off_auto_checkin: offAutoCheckinCommand,
   update_token: updateTokenCommand,
+  update_config: updateConfigCommand,
   test_feature: testCommand,
 };
 
@@ -93,6 +95,11 @@ bot.on("text", async (ctx) => {
 
       case "update_token":
         await updateToken(ctx);
+        await deleteSession(userId);
+        break;
+
+      case "update_config":
+        await updateConfig(ctx);
         await deleteSession(userId);
         break;
 
