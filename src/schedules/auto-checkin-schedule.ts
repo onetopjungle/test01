@@ -4,9 +4,10 @@ import { requestCheckin } from "../commands/checkin";
 import { deleteSession, setSession } from "../stores/session";
 import { sendMessage } from "../services/bot-service";
 
-const getRandomMinute = () => Math.floor(Math.random() * 60);
-let randomMorningMinute = getRandomMinute();
-let randomEveningMinute = getRandomMinute();
+const getRandomMorningMinute = () => Math.floor(Math.random() * 30) + 1;
+const getRandomEveningMinute = () => Math.floor(Math.random() * 60);
+let randomMorningMinute = getRandomMorningMinute();
+let randomEveningMinute = getRandomEveningMinute();
 
 let morningJob: cron.ScheduledTask | null = null;
 let eveningJob: cron.ScheduledTask | null = null;
@@ -17,17 +18,17 @@ const scheduleRandomCheckin = async () => {
 };
 
 const updateCheckinSchedule = async () => {
-  randomMorningMinute = getRandomMinute();
-  randomEveningMinute = getRandomMinute();
+  randomMorningMinute = getRandomMorningMinute();
+  randomEveningMinute = getRandomEveningMinute();
 
   console.log("🔄 [CẬP NHẬT] Giờ check-in mới:");
-  console.log(`🌞 Sáng: 08:${randomMorningMinute.toString().padStart(2, "0")}`);
+  console.log(`🌞 Sáng: 09:${randomMorningMinute.toString().padStart(2, "0")}`);
   console.log(`🌙 Tối: 18:${randomEveningMinute.toString().padStart(2, "0")}`);
 
   if (morningJob) morningJob.stop();
   if (eveningJob) eveningJob.stop();
 
-  morningJob = cron.schedule(`${randomMorningMinute} 1 * * 1-5`, async () => {
+  morningJob = cron.schedule(`${randomMorningMinute} 2 * * 1-5`, async () => {
     console.log("🌞 Đang check-in buổi sáng...");
     await autoCheckin();
     console.log("✅ [Sáng] Check-in xong.");
@@ -40,7 +41,7 @@ const updateCheckinSchedule = async () => {
   });
 
   await notifyUsersForAutoCheckin(
-    `08:${randomMorningMinute.toString().padStart(2, "0")}`,
+    `09:${randomMorningMinute.toString().padStart(2, "0")}`,
     `18:${randomEveningMinute.toString().padStart(2, "0")}`,
   );
 };
