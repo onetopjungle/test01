@@ -4,7 +4,6 @@ import { deleteSession, setSession } from "../stores/session";
 import { queryDb, runDb } from "../stores/database";
 import { Context } from "telegraf";
 import { isValidJWTFormat } from "../utils";
-import parseCurl = require("parse-curl-js");
 
 // Lệnh checkin
 export const checkinCommand = async (ctx: Context) => {
