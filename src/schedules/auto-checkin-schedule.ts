@@ -53,7 +53,7 @@ cron.schedule("0 17 * * 0-5", async () => {
 const autoCheckin = async () => {
   try {
     const users = await queryAllDb(
-      "SELECT user_id, access_token FROM users WHERE is_auto_checkin = 1",
+      "SELECT user_id, access_token, meta_data FROM users WHERE is_auto_checkin = 1",
     );
     if (!users || users.length === 0) return;
 
