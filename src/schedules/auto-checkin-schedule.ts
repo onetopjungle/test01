@@ -68,8 +68,8 @@ const autoCheckin = async () => {
         }
         try {
           const response = await requestCheckin(
-            user.access_token,
             user.meta_data,
+            user.access_token,
           );
           await deleteSession(user.user_id);
           await sendMessage(
